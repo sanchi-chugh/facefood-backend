@@ -1,21 +1,44 @@
 const express = require("express");
+const app = express();
 const mongoose = require("mongoose");
 const cors = require("cors");
+const bodyParser = require('body-parser');
+const expressJwt = require("express-jwt");
+require('dotenv').config();
 
+//jsw middleware
+app.use('/api', expressJwt({ secret: process.env.SECRET,  algorithms: ['HS256'] }));
+
+//Routes
 const homeroutes = require('./routes/home');
 
-const app = express();
-
+//Database
+mongoose.connect(process.env.DATABASE,{
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useUnifiedTopology: true
+}).then(() => console.log('DB Connected'));
 
 app.use(express.static("public"));
 
+app.use(bodyParser.json());
 app.use(cors());
 
-mongoose.connect("mongodb://localhost:27017/facefood",{useNewUrlParser: true});
 
-app.get("/",homeroutes
-);
+app.get("/",homeroutes);
+app.use("/auth",require("./routes/auth"));
 
-app.listen("3000",function(){
-    console.log("server started on port: 3000");
+//error through middleware
+app.use((err, req, res, next) => {
+    console.error(err)
+    if (err.name === "UnauthorizedError") {
+        res.status(err.status)
+    }
+    return res.send({ message: err.message })
+})
+
+const port = process.env.PORT || 8000;
+
+app.listen(port,function(){
+    console.log(`server has started on port ${port}`);
 });

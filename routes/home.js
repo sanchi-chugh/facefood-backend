@@ -3,7 +3,6 @@ const Homeitem = require('../models/home');
 
 const router = express.Router();
 
-
 router.get("/",function(req,res){
     Homeitem.find(function(err,foundItems){
         if(!err){
@@ -16,8 +15,8 @@ router.get("/",function(req,res){
                 error: err
             })
         }
-        
     })
 })
+
 
 module.exports = router;
